@@ -157,10 +157,12 @@
 {% load static %}
 <script src="{% static 'js/dashboard.js' %}"></script>
 <script src="{% static 'js/charts.js' %}"></script>
+{{ status_breakdown|json_script:"status-breakdown-data" }}
+{{ board_stats|json_script:"board-stats-data" }}
 <script>
     // Pass the data from Django to JavaScript for the charts
-    const statusData = {{ status_breakdown|safe }};
-    const boardData = {{ board_stats|safe }};
+    const statusData = JSON.parse(document.getElementById('status-breakdown-data').textContent);
+    const boardData = JSON.parse(document.getElementById('board-stats-data').textContent);
 
     if (typeof initStatusChart === 'function') {
         initStatusChart('statusChart', statusData);

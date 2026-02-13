@@ -108,9 +108,11 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ monthly_trend|json_script:"monthly-trend-data" }}
+{{ status_breakdown|json_script:"status-breakdown-data" }}
 <script>
-    const monthlyData = {{ monthly_trend|safe }};
-    const statusData = {{ status_breakdown|safe }};
+    const monthlyData = JSON.parse(document.getElementById('monthly-trend-data').textContent);
+    const statusData = JSON.parse(document.getElementById('status-breakdown-data').textContent);
 
     // Monthly trend line chart
     if (monthlyData && document.getElementById('trendChart')) {
