@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Applications - JobTrack{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Applications</h1>
+    <div>
+        <a href="{% url 'export-csv' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+        <a href="{% url 'application-create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Application
+        </a>
+    </div>
+</div>
+
+<!-- Filter form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for value, label in filter_form.status.field.choices %}
+                    {% if value %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    {% for value, label in filter_form.priority.field.choices %}
+                    {% if value %}
+                    <option value="{{ value }}" {% if request.GET.priority == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control"
+                       placeholder="Search jobs or companies..."
+                       value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date_from" class="form-control"
+                       value="{{ request.GET.date_from }}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="date_to" class="form-control"
+                       value="{{ request.GET.date_to }}">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Applications table -->
+{% if applications %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Method</th>
+                <th>Applied</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td>
+                    <a href="{% url 'application-detail' app.pk %}">
+                        {{ app.job.title }}
+                    </a>
+                </td>
+                <td>{{ app.company.name }}</td>
+                <td>
+                    <span class="badge bg-{{ app.status }}">
+                        {{ app.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-{{ app.priority }}">
+                        {{ app.get_priority_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if app.application_method == 'automated' %}
+                    <i class="bi bi-robot text-info" title="Automated"></i>
+                    {% else %}
+                    <i class="bi bi-hand-index text-secondary" title="Manual"></i>
+                    {% endif %}
+                </td>
+                <td>{{ app.applied_date|date:"d M Y"|default:"Not yet" }}</td>
+                <td>
+                    <a href="{% url 'application-update' app.pk %}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'application-delete' app.pk %}"
+                       class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-inbox display-1 text-muted"></i>
+    <h3 class="mt-3 text-muted">No applications found</h3>
+    <p class="text-muted">Start tracking your job applications by adding your first one.</p>
+    <a href="{% url 'application-create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add Application
+    </a>
+</div>
+{% endif %}
+{% endblock %}

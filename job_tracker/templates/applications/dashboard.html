@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - JobTrack{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Dashboard</h1>
+    <a href="{% url 'application-create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> New Application
+    </a>
+</div>
+
+<!-- Stats cards row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">Total Applications</h6>
+                <h2 class="card-text">{{ total_applications }}</h2>
+                <small>{{ this_month }} this month</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-info">
+            <div class="card-body">
+                <h6 class="card-title">Response Rate</h6>
+                <h2 class="card-text">{{ response_rate }}%</h2>
+                <small>Of submitted applications</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <h6 class="card-title">Interview Rate</h6>
+                <h2 class="card-text">{{ interview_rate }}%</h2>
+                <small>Applications leading to interviews</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-warning">
+            <div class="card-body">
+                <h6 class="card-title">Avg Response Time</h6>
+                <h2 class="card-text">
+                    {% if avg_response_days %}{{ avg_response_days }} days{% else %}N/A{% endif %}
+                </h2>
+                <small>Days to hear back</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Status breakdown chart -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Applications by Status</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job board performance -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Job Board Performance</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="boardChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent applications -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h5 class="mb-0">Recent Applications</h5>
+                <a href="{% url 'application-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in recent_applications %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'application-detail' app.pk %}">
+                                        {{ app.job.title }}
+                                    </a>
+                                </td>
+                                <td>{{ app.company.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ app.status|default:'secondary' }}">
+                                        {{ app.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ app.created_at|date:"d M Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No applications yet. Start by adding your first one!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming reminders -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Upcoming Reminders</h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_reminders %}
+                <ul class="list-group list-group-flush">
+                    {% for reminder in upcoming_reminders %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ reminder.get_reminder_type_display }}</strong>
+                            <small class="text-muted">{{ reminder.reminder_date|date:"d M" }}</small>
+                        </div>
+                        <small>{{ reminder.message|truncatewords:15 }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No upcoming reminders.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+<script>
+    // Pass the data from Django to JavaScript for the charts
+    const statusData = {{ status_breakdown|safe }};
+    const boardData = {{ board_stats|safe }};
+
+    if (typeof initStatusChart === 'function') {
+        initStatusChart('statusChart', statusData);
+    }
+    if (typeof initBoardChart === 'function') {
+        initBoardChart('boardChart', boardData);
+    }
+</script>
+{% endblock %}

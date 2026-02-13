@@ -1,0 +1,67 @@
+# Byte-compiled / optimised / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Media files (uploaded by users)
+job_tracker/media/cvs/*
+job_tracker/media/cover_letters/*
+job_tracker/media/certificates/*
+!job_tracker/media/cvs/.gitkeep
+!job_tracker/media/cover_letters/.gitkeep
+!job_tracker/media/certificates/.gitkeep
+job_tracker/media/screenshots/
+
+# Static files (collected)
+staticfiles/
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+*.cover
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Selenium
+screenshots/
+*.png
+
+# Logs
+*.log
+job_tracker/logs/*
+!job_tracker/logs/.gitkeep
+
+# Docker
+docker-compose.override.yml
+
+# Distribution
+dist/
+build/
+*.egg-info/
+*.egg

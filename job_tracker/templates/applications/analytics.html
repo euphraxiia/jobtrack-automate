@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - JobTrack{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Analytics</h1>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Response Rate</h6>
+                <h2>{{ response_rate }}%</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Interview Rate</h6>
+                <h2>{{ interview_rate }}%</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Applications This Month</h6>
+                <h2>{{ status_breakdown|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Applications Over Time</h5></div>
+            <div class="card-body">
+                <canvas id="trendChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Status Breakdown</h5></div>
+            <div class="card-body">
+                <canvas id="statusPieChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Top Companies</h5></div>
+            <div class="card-body">
+                {% if top_companies %}
+                <ul class="list-group list-group-flush">
+                    {% for item in top_companies %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ item.company__name }}</span>
+                        <span class="badge bg-primary rounded-pill">{{ item.count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">No data yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Job Board Success Rates</h5></div>
+            <div class="card-body">
+                {% if board_stats %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Board</th>
+                                <th>Applied</th>
+                                <th>Responses</th>
+                                <th>Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in board_stats %}
+                            <tr>
+                                <td>{{ stat.board }}</td>
+                                <td>{{ stat.total }}</td>
+                                <td>{{ stat.responses }}</td>
+                                <td>{{ stat.response_rate }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No data yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const monthlyData = {{ monthly_trend|safe }};
+    const statusData = {{ status_breakdown|safe }};
+
+    // Monthly trend line chart
+    if (monthlyData && document.getElementById('trendChart')) {
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: monthlyData.map(item => item.month),
+                datasets: [{
+                    label: 'Applications',
+                    data: monthlyData.map(item => item.count),
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Status pie chart
+    if (statusData && document.getElementById('statusPieChart')) {
+        const colours = [
+            '#6c757d', '#007bff', '#17a2b8', '#ffc107',
+            '#fd7e14', '#28a745', '#dc3545', '#155724', '#495057'
+        ];
+        new Chart(document.getElementById('statusPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusData.map(item => item.status),
+                datasets: [{
+                    data: statusData.map(item => item.count),
+                    backgroundColor: colours.slice(0, statusData.length)
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+</script>
+{% endblock %}
